@@ -17,3 +17,4 @@ supabase/.temp/
 coverage/
 *.log
 .DS_Store
+*.tsbuildinfo
