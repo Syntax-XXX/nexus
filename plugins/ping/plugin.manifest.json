@@ -1,0 +1,11 @@
+{
+  "id": "core.ping",
+  "name": "Ping",
+  "version": "1.0.0",
+  "author": "Discord Platform",
+  "description": "Health-check and latency command",
+  "entrypoint": "dist/index.js",
+  "apiVersion": 1,
+  "dependencies": {},
+  "capabilities": ["commands.register"]
+}

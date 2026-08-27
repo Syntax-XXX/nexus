@@ -1,0 +1,14 @@
+{
+  "name": "@nexus/worker",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "scripts": { "build": "tsc -p tsconfig.json", "dev": "tsx watch src/main.ts", "start": "node dist/main.js", "typecheck": "tsc -p tsconfig.json --noEmit", "lint": "eslint src", "clean": "rm -rf dist" },
+  "dependencies": {
+    "@nexus/config": "workspace:*",
+    "@nexus/database": "workspace:*",
+    "@nexus/logger": "workspace:*",
+    "pg-boss": "12.28.0",
+    "zod": "4.4.3"
+  }
+}

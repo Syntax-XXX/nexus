@@ -1,0 +1,16 @@
+{
+  "name": "@nexus/plugin-ping",
+  "version": "1.0.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "build": "tsc -p tsconfig.json",
+    "typecheck": "tsc -p tsconfig.json --noEmit",
+    "lint": "eslint src",
+    "clean": "rm -rf dist"
+  },
+  "dependencies": {
+    "@nexus/plugin-api": "workspace:*",
+    "discord.js": "14.27.0"
+  }
+}

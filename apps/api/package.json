@@ -1,0 +1,28 @@
+{
+  "name": "@nexus/api",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "build": "tsc -p tsconfig.json",
+    "dev": "tsx watch src/main.ts",
+    "start": "node dist/main.js",
+    "typecheck": "tsc -p tsconfig.json --noEmit",
+    "lint": "eslint src",
+    "test": "vitest run src --passWithNoTests",
+    "clean": "rm -rf dist"
+  },
+  "dependencies": {
+    "@fastify/cors": "11.1.0",
+    "@fastify/helmet": "13.0.2",
+    "@fastify/rate-limit": "10.3.0",
+    "@fastify/sensible": "6.0.3",
+    "@nexus/api-contract": "workspace:*",
+    "@nexus/config": "workspace:*",
+    "@nexus/database": "workspace:*",
+    "@nexus/logger": "workspace:*",
+    "fastify": "5.12.1",
+    "jose": "6.1.0",
+    "zod": "4.4.3"
+  }
+}
