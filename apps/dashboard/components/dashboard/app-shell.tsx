@@ -13,7 +13,6 @@ import {
   MessageSquareText,
   Plug,
   Settings,
-  Shield,
   ShieldCheck,
   Sparkles,
   Star,
