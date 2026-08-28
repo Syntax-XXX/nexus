@@ -159,6 +159,9 @@ importers:
       '@tailwindcss/postcss':
         specifier: 4.1.12
         version: 4.1.12
+      '@types/node':
+        specifier: 22.18.0
+        version: 22.18.0
       '@types/react':
         specifier: 19.1.12
         version: 19.1.12
@@ -171,6 +174,9 @@ importers:
       tailwindcss:
         specifier: 4.1.12
         version: 4.1.12
+      typescript:
+        specifier: 5.9.3
+        version: 5.9.3
 
   apps/worker:
     dependencies:
