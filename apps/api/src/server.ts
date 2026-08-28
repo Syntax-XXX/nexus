@@ -125,8 +125,8 @@ export async function createServer(dependencies: ServerDependencies) {
       select p.id, p.name, p.description, p.latest_version as version, p.category, p.maturity,
              coalesce(gp.enabled, false) as enabled,
              coalesce(gp.health, 'disabled') as health,
-             p.manifest->'dependencies' as dependencies,
-             p.manifest->'permissions' as permissions,
+             coalesce(p.manifest->'dependencies', '{}'::jsonb) as dependencies,
+             coalesce(p.manifest->'permissions', '[]'::jsonb) as permissions,
              coalesce(gp.config_version, 0) as config_version
       from public.plugins p
       left join public.guild_plugins gp on gp.plugin_id = p.id and gp.guild_id = ${request.params.guildId}
@@ -134,6 +134,37 @@ export async function createServer(dependencies: ServerDependencies) {
       order by p.category, p.name
     `;
   });
+
+  app.post<{ Params: { guildId: string; pluginId: string } }>(
+    "/v1/guilds/:guildId/plugins/:pluginId",
+    async (request, reply) => {
+      await authorizeGuild(request, request.params.guildId);
+      const actorId = request.actor?.userId;
+      const actorDiscordId = request.actor?.discordUserId;
+      if (!actorId || !actorDiscordId) throw app.httpErrors.unauthorized();
+      const [plugin] = await database.sql<{ id: string; latest_version: string }[]>`
+        select id, latest_version from public.plugins
+        where id = ${request.params.pluginId} and release_state <> 'disabled' and globally_enabled = true
+        limit 1
+      `;
+      if (!plugin) throw app.httpErrors.notFound("Plugin is not available");
+      const [installed] = await database.sql<{ enabled: boolean; config: unknown; config_version: number }[]>`
+        insert into public.guild_plugins (guild_id, plugin_id, version, enabled, config, health)
+        values (${request.params.guildId}, ${plugin.id}, ${plugin.latest_version}, false, '{}'::jsonb, 'disabled')
+        on conflict (guild_id, plugin_id) do update set version = excluded.version, updated_at = now()
+        returning enabled, config, config_version
+      `;
+      await database.sql`
+        insert into public.audit_logs
+          (guild_id, actor_user_id, actor_discord_id, action, resource_type, resource_id, new_value, request_id)
+        values (
+          ${request.params.guildId}, ${actorId}::uuid, ${actorDiscordId}, 'plugin.installed',
+          'plugin', ${plugin.id}, ${JSON.stringify(installed)}::jsonb, ${request.id}
+        )
+      `;
+      return reply.code(201).send(installed);
+    },
+  );
 
   app.patch<{ Params: { guildId: string; pluginId: string } }>(
     "/v1/guilds/:guildId/plugins/:pluginId",

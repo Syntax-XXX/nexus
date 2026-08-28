@@ -15,6 +15,7 @@ RUN pnpm --filter @nexus/bot... build && pnpm deploy --legacy --filter @nexus/bo
 
 FROM node:22-alpine AS runtime
 ENV NODE_ENV=production
+ENV PLUGIN_DIRECTORY=plugins
 WORKDIR /app
 COPY --from=build --chown=node:node /runtime ./
 COPY --from=build --chown=node:node /app/plugins ./plugins

@@ -1,0 +1,11 @@
+{
+  "id": "moderation",
+  "name": "Moderation",
+  "version": "1.0.0",
+  "author": "Nexus",
+  "description": "Auditable warnings and safe Discord moderation actions.",
+  "entrypoint": "dist/index.js",
+  "apiVersion": 1,
+  "dependencies": {},
+  "capabilities": ["commands.register", "members.moderate", "messages.delete"]
+}

@@ -7,9 +7,12 @@ import {
   GatewayIntentBits,
   REST,
   Routes,
+  PermissionsBitField,
   type ChatInputCommandInteraction,
+  type Interaction,
 } from "discord.js";
 import { createDatabase } from "@nexus/database";
+import { NexusEventBus } from "@nexus/events";
 import type { PluginCommand } from "@nexus/plugin-api";
 import { PluginLoader } from "@nexus/plugin-loader";
 import { createLogger } from "@nexus/logger";
@@ -20,6 +23,7 @@ const config = loadConfig();
 const logger = createLogger("bot", config.LOG_LEVEL);
 
 const database = createDatabase(config.DATABASE_URL);
+const eventBus = new NexusEventBus();
 const client = new Client({ intents: [GatewayIntentBits.Guilds] });
 const commands = new Collection<string, { command: PluginCommand; pluginId: string }>();
 const pluginRoot = resolve(process.cwd(), config.PLUGIN_DIRECTORY);
@@ -27,6 +31,8 @@ const loader = new PluginLoader({
   client,
   pluginRoot,
   logger,
+  database,
+  events: eventBus,
   getGuildConfig: (guildId, key) => database.getGuildConfig(guildId, key),
 });
 const healthServer = await startHealthServer(config.PORT, {
@@ -72,21 +78,55 @@ client.once(Events.ClientReady, (readyClient) => {
   logger.info({ user: readyClient.user.tag, guildCount: readyClient.guilds.cache.size }, "Bot ready");
 });
 
-client.on(Events.InteractionCreate, async (interaction) => {
+client.on(Events.GuildCreate, (guild) => {
+  void database.ensureGuild({ id: guild.id, name: guild.name, iconHash: guild.icon, ownerId: guild.ownerId })
+    .then(() => logger.info({ guildId: guild.id, name: guild.name }, "Guild registered"))
+    .catch((error: unknown) => logger.error({ error, guildId: guild.id }, "Guild registration failed"));
+});
+
+const nexusPermissionToDiscord = {
+  "nexus.moderation.warn": PermissionsBitField.Flags.ModerateMembers,
+  "nexus.moderation.kick": PermissionsBitField.Flags.KickMembers,
+  "nexus.moderation.ban": PermissionsBitField.Flags.BanMembers,
+  "nexus.moderation.timeout": PermissionsBitField.Flags.ModerateMembers,
+  "nexus.moderation.purge": PermissionsBitField.Flags.ManageMessages,
+  "nexus.moderation.view": PermissionsBitField.Flags.ModerateMembers,
+} as const;
+
+async function authorizeCommand(interaction: ChatInputCommandInteraction, permission?: string): Promise<boolean> {
+  if (!permission) return true;
+  const required = nexusPermissionToDiscord[permission as keyof typeof nexusPermissionToDiscord];
+  const allowed = Boolean(required && interaction.inGuild() && interaction.memberPermissions?.has(required));
+  if (allowed) return true;
+  await interaction.reply({ content: "Dir fehlen die erforderlichen Discord-Berechtigungen für diesen Befehl.", ephemeral: true }).catch(() => undefined);
+  logger.warn({ command: interaction.commandName, guildId: interaction.guildId, userId: interaction.user.id, permission }, "Command authorization denied");
+  return false;
+}
+
+async function handleInteraction(interaction: Interaction): Promise<void> {
   if (!interaction.isChatInputCommand()) return;
   const entry = commands.get(interaction.commandName);
   if (!entry) return;
 
   try {
+    if (!(await authorizeCommand(interaction, entry.command.permission))) return;
+    if (interaction.guildId && !(await database.isPluginEnabled(interaction.guildId, entry.pluginId))) {
+      await interaction.reply({ content: "Dieses Nexus-Modul ist auf diesem Server deaktiviert.", ephemeral: true });
+      return;
+    }
     const loaded = loader.loadedPlugins.get(entry.pluginId);
     if (!loaded) throw new Error(`Plugin ${entry.pluginId} is not loaded`);
-    await entry.command.execute(interaction as ChatInputCommandInteraction, loaded.context);
+    await entry.command.execute(interaction, loaded.context);
   } catch (error) {
     logger.error({ error, command: interaction.commandName, guildId: interaction.guildId }, "Command failed");
     const response = { content: "Beim Ausführen des Befehls ist ein Fehler aufgetreten.", ephemeral: true };
     if (interaction.deferred || interaction.replied) await interaction.followUp(response).catch(() => undefined);
     else await interaction.reply(response).catch(() => undefined);
   }
+}
+
+client.on(Events.InteractionCreate, (interaction) => {
+  void handleInteraction(interaction);
 });
 
 let shuttingDown = false;
@@ -96,7 +136,7 @@ async function shutdown(signal: string): Promise<void> {
   logger.info({ signal }, "Shutting down");
   const forceTimer = setTimeout(() => process.exit(1), 10_000).unref();
   await loader.unloadAll();
-  client.destroy();
+  await client.destroy();
   await new Promise<void>((resolvePromise) => healthServer.close(() => resolvePromise()));
   await database.close();
   clearTimeout(forceTimer);

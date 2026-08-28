@@ -89,6 +89,9 @@ importers:
       '@nexus/database':
         specifier: workspace:*
         version: link:../../packages/database
+      '@nexus/events':
+        specifier: workspace:*
+        version: link:../../packages/events
       '@nexus/logger':
         specifier: workspace:*
         version: link:../../packages/logger
@@ -213,6 +216,9 @@ importers:
 
   packages/database:
     dependencies:
+      '@nexus/plugin-api':
+        specifier: workspace:*
+        version: link:../plugin-api
       postgres:
         specifier: 3.4.9
         version: 3.4.9
@@ -229,6 +235,9 @@ importers:
 
   packages/plugin-api:
     dependencies:
+      '@nexus/events':
+        specifier: workspace:*
+        version: link:../events
       discord.js:
         specifier: 14.27.0
         version: 14.27.0
@@ -274,6 +283,15 @@ importers:
       zod:
         specifier: 4.4.3
         version: 4.4.3
+
+  plugins/moderation:
+    dependencies:
+      '@nexus/plugin-api':
+        specifier: workspace:*
+        version: link:../../packages/plugin-api
+      discord.js:
+        specifier: 14.27.0
+        version: 14.27.0
 
   plugins/ping:
     dependencies:

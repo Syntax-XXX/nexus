@@ -28,7 +28,7 @@ export const pluginSummarySchema = z.object({
   maturity: maturitySchema,
   health: healthSchema,
   enabled: z.boolean(),
-  dependencies: z.array(z.string()),
+  dependencies: z.record(z.string(), z.string()),
   permissions: z.array(z.string()),
 });
 

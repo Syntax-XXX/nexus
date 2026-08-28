@@ -22,6 +22,8 @@ export interface PluginLoaderOptions {
   client: Client;
   pluginRoot: string;
   logger: PluginContext["logger"];
+  database: PluginContext["database"];
+  events: PluginContext["events"];
   getGuildConfig<T>(guildId: string, key: string): Promise<T | null>;
 }
 
@@ -56,6 +58,8 @@ export class PluginLoader {
       manifest,
       logger: this.#options.logger,
       signal: abortController.signal,
+      database: this.#options.database,
+      events: this.#options.events,
       getGuildConfig: <T>(guildId: string, key: string) => this.#options.getGuildConfig<T>(guildId, key),
     };
 
