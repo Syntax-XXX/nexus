@@ -1,0 +1,73 @@
+services:
+  - type: web
+    name: nexus-bot
+    runtime: docker
+    dockerfilePath: ./apps/bot/Dockerfile
+    dockerContext: .
+    plan: starter
+    region: frankfurt
+    numInstances: 1
+    healthCheckPath: /health
+    autoDeployTrigger: commit
+    envVars:
+      - key: NODE_ENV
+        value: production
+      - key: LOG_LEVEL
+        value: info
+      - key: PORT
+        value: "10000"
+      - key: PLUGIN_DIRECTORY
+        value: plugins
+      - key: DATABASE_URL
+        sync: false
+      - key: DISCORD_TOKEN
+        sync: false
+      - key: DISCORD_CLIENT_ID
+        sync: false
+      - key: DISCORD_DEV_GUILD_ID
+        sync: false
+
+  - type: web
+    name: nexus-api
+    runtime: docker
+    dockerfilePath: ./apps/api/Dockerfile
+    dockerContext: .
+    plan: starter
+    region: frankfurt
+    numInstances: 1
+    healthCheckPath: /health
+    autoDeployTrigger: commit
+    envVars:
+      - key: NODE_ENV
+        value: production
+      - key: API_HOST
+        value: 0.0.0.0
+      - key: API_PORT
+        value: "10000"
+      - key: DATABASE_URL
+        sync: false
+      - key: SUPABASE_URL
+        sync: false
+      - key: SUPABASE_SERVICE_ROLE_KEY
+        sync: false
+      - key: TOKEN_ENCRYPTION_KEY
+        sync: false
+      - key: DASHBOARD_URL
+        sync: false
+      - key: TRUSTED_PROXY_CIDRS
+        value: 0.0.0.0/0
+
+  - type: worker
+    name: nexus-worker
+    runtime: docker
+    dockerfilePath: ./apps/worker/Dockerfile
+    dockerContext: .
+    plan: starter
+    region: frankfurt
+    numInstances: 1
+    autoDeployTrigger: commit
+    envVars:
+      - key: NODE_ENV
+        value: production
+      - key: DATABASE_URL
+        sync: false

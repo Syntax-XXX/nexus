@@ -7,11 +7,11 @@ first-party plugin runtime. The repository is a strict TypeScript pnpm monorepo.
 ## Services
 
 - `apps/dashboard`: Next.js App Router dashboard deployed to Vercel.
-- `apps/api`: authenticated REST API deployed as a Koyeb Web Service.
-- `apps/bot`: persistent Discord Gateway process deployed as a Koyeb Web Service.
+- `apps/api`: authenticated REST API deployed as a Render Web Service.
+- `apps/bot`: persistent Discord Gateway process deployed as a Render Web Service.
   Its small HTTP server exposes `/health` and `/ready` on `PORT`.
-- `apps/worker`: persistent `pg-boss` jobs and outbox delivery deployed as a Koyeb
-  Worker Service.
+- `apps/worker`: persistent `pg-boss` jobs and outbox delivery deployed as a Render
+  Background Worker.
 - `supabase`: versioned PostgreSQL migrations and development-safe seed data.
 
 ## Requirements
@@ -70,8 +70,8 @@ pnpm exec supabase link --project-ref <project-ref>
 pnpm db:migrate
 ```
 
-Use the session pooler on IPv4-only Koyeb instances. Keep the service-role key and
-database URL in Koyeb/Vercel encrypted environment variables; neither is a
+Use the session pooler for hosted Render instances. Keep the service-role key and
+database URL in Render/Vercel encrypted environment variables; neither is a
 `NEXT_PUBLIC_` value.
 
 ## Vercel dashboard
@@ -82,28 +82,36 @@ access to files outside the root for the workspace packages, and use pnpm. Set
 operator fields for Production and Preview. The OAuth allow-list must include the
 production and intended preview callback URLs.
 
-## Koyeb bot, API, and worker
+## Render bot, API, and worker
 
-Create three services from the same GitHub repository, keep the repository root
-as build context, and select the corresponding Dockerfile:
+Create a Blueprint from `render.yaml` in the GitHub repository. It provisions
+three paid, always-on Docker services in Frankfurt: `nexus-bot` (Web Service),
+`nexus-api` (Web Service), and `nexus-worker` (Background Worker). Free
+instances sleep and are not suitable for a Discord Gateway or durable jobs.
 
-- Bot: `apps/bot/Dockerfile`, Web Service, port `3002`, HTTP health path `/health`.
-- API: `apps/api/Dockerfile`, Web Service, port `3001`, HTTP health path `/health`.
-- Worker: `apps/worker/Dockerfile`, Worker Service, no public port.
+The bot requires `DATABASE_URL`, `DISCORD_TOKEN`, `DISCORD_CLIENT_ID`, and an
+optional `DISCORD_DEV_GUILD_ID` secret. The API requires `DATABASE_URL`,
+`SUPABASE_URL`, `SUPABASE_SERVICE_ROLE_KEY`, `TOKEN_ENCRYPTION_KEY`, and the
+exact Vercel origin in `DASHBOARD_URL`. Render supplies `PORT`; bot and API bind
+to `0.0.0.0` and expose `/health` plus `/ready`.
 
-Set minimum scale to one for the bot and worker. The health route tells Koyeb
-whether a running instance is alive; it is not a substitute for a non-zero
-minimum scale. Point the API custom hostname at the Koyeb DNS target and set that
-HTTPS origin as `API_URL` in Vercel. Set `DASHBOARD_URL` in the API to the exact
-Vercel/custom dashboard origin so credentialed CORS remains restricted.
+Verify after deployment:
+
+```bash
+curl --fail https://<render-bot-domain>/health
+curl --fail https://<render-bot-domain>/ready
+```
+
+Point the API custom hostname at Render's DNS target and set that HTTPS origin as
+`API_URL` in Vercel. Set `DASHBOARD_URL` in the API to the exact Vercel/custom
+dashboard origin so credentialed CORS remains restricted. The Render health
+checks use `/health`; keep all three services at one instance minimum.
 
 After deployment verify:
 
 ```bash
-curl --fail https://<bot-domain>/health
-curl --fail https://<bot-domain>/ready
-curl --fail https://<api-domain>/health
-curl --fail https://<api-domain>/ready
+curl --fail https://<render-api-domain>/health
+curl --fail https://<render-api-domain>/ready
 ```
 
 `/ready` intentionally fails until Discord and PostgreSQL are connected.
@@ -111,10 +119,11 @@ curl --fail https://<api-domain>/ready
 ## Legal and privacy
 
 German terms and privacy pages are available at `/de/nutzungsbedingungen` and
-`/de/datenschutz`. Deployment fails those routes safely when required operator
-details are absent instead of publishing invented legal information. The texts
-must be reviewed for the operator's actual business model, integrations,
-retention settings, and hosting regions before launch.
+`/de/datenschutz`. When required operator fields are absent, the pages show a
+visible configuration warning and safe non-address placeholders instead of
+publishing invented legal information. Fill every `LEGAL_*` value and have the
+texts reviewed for the operator's actual business model, integrations, retention
+settings, and hosting regions before launch.
 
 ## Plugin trust boundary
 
