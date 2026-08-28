@@ -1,5 +1,24 @@
-import { redirect } from "next/navigation";
+import Link from "next/link";
+import { ArrowRight, Bot, Check, ShieldCheck, Sparkles } from "lucide-react";
+import { Button } from "@/components/ui/button";
+
+export const metadata = { title: "Nexus — Discord communities, in sync" };
+
+const features = ["Per-server modules with live configuration", "Server-side permission checks and audit trails", "Moderation, verification, automod, and community tools"];
 
 export default function HomePage() {
-  redirect("/dashboard");
+  return (
+    <main className="min-h-svh overflow-hidden bg-background">
+      <nav className="mx-auto flex w-full max-w-6xl items-center justify-between px-6 py-6 lg:px-8">
+        <Link href="/" className="flex items-center gap-3 font-semibold tracking-[0.2em]"><span className="flex size-9 items-center justify-center rounded-xl bg-primary text-primary-foreground"><Bot aria-hidden="true" /></span>NEXUS</Link>
+        <div className="flex items-center gap-3"><Link className="hidden text-sm text-muted-foreground transition-colors hover:text-foreground sm:block" href="/de/datenschutz">Datenschutz</Link><Button asChild size="sm"><Link href="/login">Dashboard öffnen <ArrowRight data-icon="inline-end" /></Link></Button></div>
+      </nav>
+      <section className="relative mx-auto grid w-full max-w-6xl gap-14 px-6 pb-24 pt-20 lg:grid-cols-[1.05fr_.95fr] lg:items-center lg:px-8 lg:pb-36 lg:pt-28">
+        <div className="absolute -left-40 -top-36 -z-0 size-[34rem] rounded-full bg-primary/10 blur-3xl" aria-hidden="true" />
+        <div className="relative z-10"><div className="mb-6 inline-flex items-center gap-2 rounded-full border bg-card/80 px-3 py-1.5 text-xs font-medium text-muted-foreground shadow-sm"><Sparkles className="size-3.5 text-primary" /> Built for real communities</div><h1 className="max-w-3xl text-5xl font-semibold tracking-[-0.055em] text-foreground sm:text-6xl lg:text-7xl">Your community, <span className="text-primary">in sync.</span></h1><p className="mt-7 max-w-xl text-lg leading-8 text-muted-foreground">Nexus brings moderation, verification, automation, and community workflows into one focused Discord control plane.</p><div className="mt-9 flex flex-col gap-3 sm:flex-row"><Button asChild size="lg"><Link href="/login"><ShieldCheck data-icon="inline-start" /> Continue with Discord</Link></Button><Button asChild variant="outline" size="lg"><Link href="/de/nutzungsbedingungen">How Nexus works <ArrowRight data-icon="inline-end" /></Link></Button></div><ul className="mt-10 grid gap-3 text-sm text-muted-foreground sm:grid-cols-3 lg:grid-cols-1">{features.map((feature) => <li className="flex items-start gap-2" key={feature}><Check className="mt-0.5 size-4 shrink-0 text-primary" />{feature}</li>)}</ul></div>
+        <div className="relative z-10 rounded-3xl border bg-card/90 p-3 shadow-2xl shadow-primary/10 backdrop-blur"><div className="rounded-2xl border bg-background p-5 sm:p-7"><div className="flex items-center justify-between border-b pb-5"><div><p className="text-xs font-medium uppercase tracking-[0.18em] text-muted-foreground">Nexus control plane</p><p className="mt-2 text-xl font-semibold">Arcadia Community</p></div><span className="flex items-center gap-1.5 rounded-full bg-emerald-500/10 px-2.5 py-1 text-xs font-medium text-emerald-600"><span className="size-1.5 rounded-full bg-emerald-500" /> All systems operational</span></div><div className="mt-6 grid gap-3 sm:grid-cols-2"><div className="rounded-xl border bg-card p-4"><p className="text-xs text-muted-foreground">Commands this week</p><p className="mt-2 text-2xl font-semibold">4,679</p><div className="mt-4 flex h-10 items-end gap-1.5">{[35, 52, 42, 70, 58, 82, 66, 92, 75, 88].map((height) => <span key={height} className="flex-1 rounded-sm bg-primary/70" style={{ height: `${height}%` }} />)}</div></div><div className="rounded-xl border bg-card p-4"><p className="text-xs text-muted-foreground">Active modules</p><p className="mt-2 text-2xl font-semibold">12 / 15</p><div className="mt-5 h-2 overflow-hidden rounded-full bg-muted"><div className="h-full w-4/5 rounded-full bg-primary" /></div><p className="mt-3 text-xs text-muted-foreground">Configuration updates propagate in seconds.</p></div></div><div className="mt-3 rounded-xl border bg-card p-4"><p className="text-xs font-medium text-muted-foreground">Recent activity</p><div className="mt-4 grid gap-3 text-sm"><p><span className="font-medium">Member verified</span><span className="float-right text-xs text-muted-foreground">2 min ago</span></p><p><span className="font-medium">Automod rule updated</span><span className="float-right text-xs text-muted-foreground">18 min ago</span></p><p><span className="font-medium">Ticket resolved</span><span className="float-right text-xs text-muted-foreground">41 min ago</span></p></div></div></div></div>
+      </section>
+      <footer className="mx-auto flex w-full max-w-6xl flex-col gap-3 border-t px-6 py-8 text-xs text-muted-foreground sm:flex-row sm:items-center sm:justify-between lg:px-8"><span>© {new Date().getFullYear()} Nexus</span><div className="flex gap-4"><Link href="/de/nutzungsbedingungen" className="hover:text-foreground">Nutzungsbedingungen</Link><Link href="/de/datenschutz" className="hover:text-foreground">Datenschutz</Link></div></footer>
+    </main>
+  );
 }
