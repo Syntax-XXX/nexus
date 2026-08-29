@@ -60,16 +60,16 @@ importers:
         specifier: 6.0.3
         version: 6.0.3
       '@nexus/api-contract':
-        specifier: workspace:*
+        specifier: file:../../packages/api-contract
         version: link:../../packages/api-contract
       '@nexus/config':
-        specifier: workspace:*
+        specifier: file:../../packages/config
         version: link:../../packages/config
       '@nexus/database':
-        specifier: workspace:*
+        specifier: file:../../packages/database
         version: link:../../packages/database
       '@nexus/logger':
-        specifier: workspace:*
+        specifier: file:../../packages/logger
         version: link:../../packages/logger
       fastify:
         specifier: 5.12.1
@@ -84,22 +84,22 @@ importers:
   apps/bot:
     dependencies:
       '@nexus/config':
-        specifier: workspace:*
+        specifier: file:../../packages/config
         version: link:../../packages/config
       '@nexus/database':
-        specifier: workspace:*
+        specifier: file:../../packages/database
         version: link:../../packages/database
       '@nexus/events':
-        specifier: workspace:*
+        specifier: file:../../packages/events
         version: link:../../packages/events
       '@nexus/logger':
-        specifier: workspace:*
+        specifier: file:../../packages/logger
         version: link:../../packages/logger
       '@nexus/plugin-api':
-        specifier: workspace:*
+        specifier: file:../../packages/plugin-api
         version: link:../../packages/plugin-api
       '@nexus/plugin-loader':
-        specifier: workspace:*
+        specifier: file:../../packages/plugin-loader
         version: link:../../packages/plugin-loader
       discord.js:
         specifier: 14.27.0
@@ -184,13 +184,13 @@ importers:
   apps/worker:
     dependencies:
       '@nexus/config':
-        specifier: workspace:*
+        specifier: file:../../packages/config
         version: link:../../packages/config
       '@nexus/database':
-        specifier: workspace:*
+        specifier: file:../../packages/database
         version: link:../../packages/database
       '@nexus/logger':
-        specifier: workspace:*
+        specifier: file:../../packages/logger
         version: link:../../packages/logger
       pg-boss:
         specifier: 12.28.0
@@ -202,7 +202,7 @@ importers:
   packages/api-contract:
     dependencies:
       '@nexus/shared':
-        specifier: workspace:*
+        specifier: file:../shared
         version: link:../shared
       zod:
         specifier: 4.4.3
@@ -217,7 +217,7 @@ importers:
   packages/database:
     dependencies:
       '@nexus/plugin-api':
-        specifier: workspace:*
+        specifier: file:../plugin-api
         version: link:../plugin-api
       postgres:
         specifier: 3.4.9
@@ -236,7 +236,7 @@ importers:
   packages/plugin-api:
     dependencies:
       '@nexus/events':
-        specifier: workspace:*
+        specifier: file:../events
         version: link:../events
       discord.js:
         specifier: 14.27.0
@@ -248,7 +248,7 @@ importers:
   packages/plugin-loader:
     dependencies:
       '@nexus/plugin-api':
-        specifier: workspace:*
+        specifier: file:../plugin-api
         version: link:../plugin-api
       discord.js:
         specifier: 14.27.0
@@ -257,19 +257,19 @@ importers:
   packages/plugin-runtime:
     dependencies:
       '@nexus/plugin-sdk':
-        specifier: workspace:*
+        specifier: file:../plugin-sdk
         version: link:../plugin-sdk
       '@nexus/shared':
-        specifier: workspace:*
+        specifier: file:../shared
         version: link:../shared
 
   packages/plugin-sdk:
     dependencies:
       '@nexus/events':
-        specifier: workspace:*
+        specifier: file:../events
         version: link:../events
       '@nexus/shared':
-        specifier: workspace:*
+        specifier: file:../shared
         version: link:../shared
       discord-api-types:
         specifier: 0.38.31
@@ -287,7 +287,7 @@ importers:
   plugins/moderation:
     dependencies:
       '@nexus/plugin-api':
-        specifier: workspace:*
+        specifier: file:../../packages/plugin-api
         version: link:../../packages/plugin-api
       discord.js:
         specifier: 14.27.0
@@ -296,7 +296,7 @@ importers:
   plugins/ping:
     dependencies:
       '@nexus/plugin-api':
-        specifier: workspace:*
+        specifier: file:../../packages/plugin-api
         version: link:../../packages/plugin-api
       discord.js:
         specifier: 14.27.0

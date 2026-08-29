@@ -6,5 +6,5 @@
   "exports": { ".": "./dist/index.js" },
   "types": "./dist/index.d.ts",
   "scripts": { "build": "tsc -p tsconfig.json", "typecheck": "tsc -p tsconfig.json --noEmit", "lint": "eslint src", "test": "vitest run src --passWithNoTests", "clean": "rm -rf dist" },
-  "dependencies": { "@nexus/shared": "workspace:*", "zod": "4.4.3" }
+  "dependencies": { "@nexus/shared": "file:../shared", "zod": "4.4.3" }
 }

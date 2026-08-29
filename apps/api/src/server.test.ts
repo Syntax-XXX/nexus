@@ -21,7 +21,7 @@ const config: ApiEnvironment = {
 
 describe("API health", () => {
   it("serves liveness without requiring database access", async () => {
-    const database = { ping: async () => true } as unknown as Database;
+    const database = { ping: () => Promise.resolve(true) } as unknown as Database;
     const app = await createServer({ config, database, logger: createLogger("api-test", "silent") });
     const response = await app.inject({ method: "GET", url: "/health" });
     expect(response.statusCode).toBe(200);

@@ -2,7 +2,6 @@ import type {
   ChatInputCommandInteraction,
   ClientEvents,
   RESTPostAPIChatInputApplicationCommandsJSONBody,
-  SlashCommandStringOption,
 } from "discord.js";
 import { z } from "zod";
 import type { NexusEventMap } from "@nexus/events";

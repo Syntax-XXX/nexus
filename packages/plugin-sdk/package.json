@@ -6,5 +6,5 @@
   "exports": { ".": "./dist/index.js" },
   "types": "./dist/index.d.ts",
   "scripts": { "build": "tsc -p tsconfig.json", "typecheck": "tsc -p tsconfig.json --noEmit", "lint": "eslint src", "test": "vitest run src --passWithNoTests", "clean": "rm -rf dist" },
-  "dependencies": { "@nexus/events": "workspace:*", "@nexus/shared": "workspace:*", "discord-api-types": "0.38.31", "zod": "4.4.3" }
+  "dependencies": { "@nexus/events": "file:../events", "@nexus/shared": "file:../shared", "discord-api-types": "0.38.31", "zod": "4.4.3" }
 }

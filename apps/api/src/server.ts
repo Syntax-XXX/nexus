@@ -98,7 +98,7 @@ export async function createServer(dependencies: ServerDependencies) {
     if (!membership) throw app.httpErrors.forbidden("You cannot manage this guild");
   }
 
-  app.get("/health", async () => ({ status: "ok", service: "api", version: "0.1.0" }));
+  app.get("/health", () => ({ status: "ok", service: "api", version: "0.1.0" }));
   app.get("/ready", async (_request, reply) => {
     const healthy = await database.ping().catch(() => false);
     return reply.status(healthy ? 200 : 503).send({ status: healthy ? "ready" : "not_ready", database: healthy });

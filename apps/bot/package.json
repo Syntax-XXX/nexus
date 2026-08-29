@@ -12,12 +12,12 @@
     "clean": "rm -rf dist"
   },
   "dependencies": {
-    "@nexus/config": "workspace:*",
-    "@nexus/database": "workspace:*",
-    "@nexus/events": "workspace:*",
-    "@nexus/logger": "workspace:*",
-    "@nexus/plugin-api": "workspace:*",
-    "@nexus/plugin-loader": "workspace:*",
+    "@nexus/config": "file:../../packages/config",
+    "@nexus/database": "file:../../packages/database",
+    "@nexus/events": "file:../../packages/events",
+    "@nexus/logger": "file:../../packages/logger",
+    "@nexus/plugin-api": "file:../../packages/plugin-api",
+    "@nexus/plugin-loader": "file:../../packages/plugin-loader",
     "discord.js": "14.27.0",
     "pino": "10.3.1",
     "zod": "4.4.3"

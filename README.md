@@ -7,19 +7,24 @@ first-party plugin runtime. The repository is a strict TypeScript pnpm monorepo.
 ## Services
 
 - `apps/dashboard`: Next.js App Router dashboard deployed to Vercel.
-- `apps/api`: authenticated REST API deployed as a Render Web Service.
-- `apps/bot`: persistent Discord Gateway process deployed as a Render Web Service.
-  Its small HTTP server exposes `/health` and `/ready` on `PORT`.
-- `apps/worker`: persistent `pg-boss` jobs and outbox delivery deployed as a Render
-  Background Worker.
+- `apps/api`: authenticated REST API, deployed as an always-on Node.js service.
+- `apps/bot`: persistent Discord Gateway process, deployed as an always-on Node.js
+  service. Its HTTP server exposes `/health` and `/ready` on `PORT`.
+- `apps/worker`: persistent `pg-boss` jobs and outbox delivery, deployed as an
+  always-on Node.js worker.
 - `supabase`: versioned PostgreSQL migrations and development-safe seed data.
+
+The dashboard runs on Vercel. Bot, API, and worker Node.js apps are designed for
+Bonto.dev (or any equivalent always-on Node.js host) and do not depend on a
+provider-specific API or manifest.
 
 ## Requirements
 
-- Node.js 22 (Node 20.19 is sufficient for local builds but Supabase is deprecating it)
+- Node.js 22 (Node 20.19 is sufficient for local builds)
 - pnpm 10.15.1 through Corepack
 - Docker for the local Supabase stack and image validation
 - Discord application and hosted Supabase project
+- An always-on Bonto.dev app plan for the bot and durable jobs
 
 ## Local development
 
@@ -70,9 +75,9 @@ pnpm exec supabase link --project-ref <project-ref>
 pnpm db:migrate
 ```
 
-Use the session pooler for hosted Render instances. Keep the service-role key and
-database URL in Render/Vercel encrypted environment variables; neither is a
-`NEXT_PUBLIC_` value.
+Use the Supabase session pooler for long-lived Bonto.dev services. Keep the
+service-role key and database URL in Bonto.dev/Vercel encrypted environment
+variables; neither is a `NEXT_PUBLIC_` value.
 
 ## Vercel dashboard
 
@@ -82,39 +87,83 @@ access to files outside the root for the workspace packages, and use pnpm. Set
 operator fields for Production and Preview. The OAuth allow-list must include the
 production and intended preview callback URLs.
 
-## Render bot, API, and worker
+The intended production origin is `https://nexus.syntax-xxx.is-a.dev`. Until the
+custom domain is verified in Vercel, the project remains reachable through its
+`*.vercel.app` alias.
 
-Create a Blueprint from `render.yaml` in the GitHub repository. It provisions
-three paid, always-on Docker services in Frankfurt: `nexus-bot` (Web Service),
-`nexus-api` (Web Service), and `nexus-worker` (Background Worker). Free
-instances sleep and are not suitable for a Discord Gateway or durable jobs.
+## Bonto.dev bot, API, and worker
 
-The bot requires `DATABASE_URL`, `DISCORD_TOKEN`, `DISCORD_CLIENT_ID`, and an
-optional `DISCORD_DEV_GUILD_ID` secret. The API requires `DATABASE_URL`,
-`SUPABASE_URL`, `SUPABASE_SERVICE_ROLE_KEY`, `TOKEN_ENCRYPTION_KEY`, and the
-exact Vercel origin in `DASHBOARD_URL`. Render supplies `PORT`; bot and API bind
-to `0.0.0.0` and expose `/health` plus `/ready`.
+Create three always-on Node.js apps in Bonto.dev from this repository. Bonto reads
+the root `package.json`, installs npm dependencies, and runs its `start` script.
+Authenticate the Bonto CLI with `bonto auth login` and the device code shown at
+`bonto.dev/authorize`, then create an app and connect the GitHub repository. The
+repository provides these service commands:
 
-Verify after deployment:
+| Service | Startup command | Process | Health |
+| --- | --- | --- | --- |
+| Bot | `npm start` or `npm run start:bot` | Discord Gateway | `GET /health`, `GET /ready` |
+| API | `npm run start:api` | Fastify REST API | `GET /health`, `GET /ready` |
+| Worker | `npm run start:worker` | pg-boss/outbox worker | process logs |
 
-```bash
-curl --fail https://<render-bot-domain>/health
-curl --fail https://<render-bot-domain>/ready
+Set Bonto's Node.js version to 22 and use an always-on plan. Bonto injects `PORT`;
+the bot defaults to `3002` and the API uses `API_PORT` (default `3001`). Bindings
+are already `0.0.0.0`; no long-running process is required on Vercel.
+
+For the bot app, leave the startup command as `npm start` (or explicitly set
+`npm run start:bot`). Bonto automatically runs the root script. For the other
+apps set `npm run start:api` and `npm run start:worker` respectively.
+
+Required bot variables:
+
+```text
+NODE_ENV=production
+LOG_LEVEL=info
+PORT=<Bonto bot port, supplied by Bonto>
+PLUGIN_DIRECTORY=plugins
+DATABASE_URL=<Supabase session-pooler URL>
+DISCORD_TOKEN=<secret>
+DISCORD_CLIENT_ID=<application id>
+DISCORD_DEV_GUILD_ID=<optional test guild id>
 ```
 
-Point the API custom hostname at Render's DNS target and set that HTTPS origin as
-`API_URL` in Vercel. Set `DASHBOARD_URL` in the API to the exact Vercel/custom
-dashboard origin so credentialed CORS remains restricted. The Render health
-checks use `/health`; keep all three services at one instance minimum.
+Required API variables:
 
-After deployment verify:
-
-```bash
-curl --fail https://<render-api-domain>/health
-curl --fail https://<render-api-domain>/ready
+```text
+NODE_ENV=production
+API_HOST=0.0.0.0
+API_PORT=<Bonto API port>
+DATABASE_URL=<Supabase session-pooler URL>
+SUPABASE_URL=https://<project-ref>.supabase.co
+SUPABASE_SERVICE_ROLE_KEY=<secret>
+TOKEN_ENCRYPTION_KEY=<32-byte secret>
+INTERNAL_SIGNING_SECRET=<secret>
+DASHBOARD_URL=https://nexus.syntax-xxx.is-a.dev
 ```
 
-`/ready` intentionally fails until Discord and PostgreSQL are connected.
+Required worker variables:
+
+```text
+NODE_ENV=production
+DATABASE_URL=<Supabase session-pooler URL>
+NEXUS_INSTANCE_ID=<unique instance id>
+```
+
+Configure Bonto's health probe to call `/health` for the bot and API. The endpoint
+confirms that the process is serving; it cannot prevent a provider from sleeping a
+free app. `/ready` intentionally remains non-ready until the Discord gateway and
+PostgreSQL connection are available.
+
+After Bonto gives the API an HTTPS hostname, set that exact URL as `API_URL` in
+Vercel and redeploy the dashboard. Point `nexusba.syntax-xxx.is-a.dev` (or the
+chosen bot/API hostname) at the target supplied by Bonto.dev according to its
+custom-domain instructions; do not guess a DNS target. Verify the services with:
+
+```bash
+curl --fail https://<bonto-bot-host>/health
+curl --fail https://<bonto-bot-host>/ready
+curl --fail https://<bonto-api-host>/health
+curl --fail https://<bonto-api-host>/ready
+```
 
 ## Legal and privacy
 
